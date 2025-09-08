@@ -33,6 +33,7 @@ import { Button } from '../../components/ui/Button';
 import EditPatientModal from '../../components/modals/EditPatientModal';
 import DeletePatientModal from '../../components/modals/DeletePatientModal';
 import AddDocumentModal from '../../components/modals/AddDocumentModal';
+import { deleteDocument } from '../../utils/documentStorage';
 import NewInvoiceModal from '../../components/modals/NewInvoiceModal';
 import EditInvoiceModal from '../../components/modals/EditInvoiceModal';
 import DeleteInvoiceModal from '../../components/modals/DeleteInvoiceModal';
@@ -43,7 +44,7 @@ import DeleteConsultationModal from '../../components/modals/DeleteConsultationM
 import { Patient, Consultation, Invoice } from '../../types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { HDSCompliance } from '../../utils/hdsCompliance';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { cleanDecryptedField } from '../../utils/dataCleaning';
 import { PatientService } from '../../services/patientService';
 import { ConsultationService } from '../../services/consultationService';
@@ -66,8 +67,6 @@ const PatientDetail: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
-  const [isDeletingDocument, setIsDeletingDocument] = useState<string | null>(null);
-  const [documentMessage, setDocumentMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewInvoiceModalOpen, setIsNewInvoiceModalOpen] = useState(false);
   const [isEditInvoiceModalOpen, setIsEditInvoiceModalOpen] = useState(false);
   const [isDeleteInvoiceModalOpen, setIsDeleteInvoiceModalOpen] = useState(false);
