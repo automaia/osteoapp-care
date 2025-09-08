@@ -335,6 +335,11 @@ export async function uploadDocument(
     return result;
 
   } catch (error: any) {
+    // Si le fichier n'existe pas déjà, considérer la suppression comme réussie
+    if (error.code === 'storage/object-not-found') {
+      console.warn('⚠️ Fichier déjà absent du stockage:', filePath);
+      return;
+    }
     console.error('💥 Erreur lors de l\'upload:', error);
     
     // Log détaillé de l'erreur
