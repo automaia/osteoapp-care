@@ -95,36 +95,6 @@ const UserLogin: React.FC = () => {
         <p className="mt-2 text-gray-600">Accédez à votre compte</p>
       </div>
 
-      {/* Beta Notice */}
-      <div className="mb-6 p-4 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg border border-primary-200">
-        <div className="flex items-center justify-center mb-2">
-          <div className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
-            <Star size={12} className="mr-1" />
-            BETA
-          </div>
-        </div>
-        <p className="text-sm text-center text-gray-700">
-          Réservé aux ostéopathes et futur(e)s ostéopathes bêta-testeur·se·s<br />
-          👉 Note moyenne des testeur·se·s : 4,9/5<br />
-          ⏱️ Temps gagné : 2 à 3 heures par semaine<br />
-          ✅ 100 % de satisfaction
-        </p>
-        <div className="mt-3 text-center">
-          <Link 
-            to="/beta-waitlist" 
-            className="inline-block text-primary-600 hover:text-primary-700 font-medium transition-all duration-300 relative group"
-            onClick={() => {
-              trackEvent("beta_waitlist_click", { source: "login_page_button" });
-              trackMatomoEvent('Navigation', 'Click', 'Beta Waitlist Button from Login');
-              trackGAEvent('click_beta_waitlist_button', { source: "login_page" });
-            }}
-          >
-            Devenez BETA testeur·se·s
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 group-hover:w-full transition-all duration-300"></span>
-          </Link>
-        </div>
-      </div>
-
       {error && (
         <div className="mb-4 p-3 bg-error/5 border border-error/20 rounded-lg flex items-center">
           <AlertCircle size={16} className="text-error mr-2" />
