@@ -110,4 +110,4 @@ En cas de problème :
 
 ## 📝 Documentation
 
-Toutes les modifications sont documentées et les logs sont conservés pour le debugging. Le système maintient la compatibilité avec l'architecture existante.
+Toutes les modifications sont documentées et les logs sont conservés pour le debugging. Le système maintient la compatibilité avec l'architecture existante.# osteoapp-care
