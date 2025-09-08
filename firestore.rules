@@ -1,0 +1,183 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Fonctions utilitaires
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email.lower() == 'grondin.stephane@gmail.com';
+    }
+    
+    function isOsteopath() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'osteopath';
+    }
+    
+    function isSubstitute() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'substitute';
+    }
+    
+    function getLinkedOsteopathId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.linkedTo;
+    }
+    
+    function hasAccessToOsteopathData(osteopathId) {
+      return isAuthenticated() && (
+        request.auth.uid == osteopathId || // L'ostéopathe lui-même
+        (isSubstitute() && getLinkedOsteopathId() == osteopathId) // Remplaçant autorisé
+      );
+    }
+    
+    function isOwner(resource) {
+      return isAuthenticated() && hasAccessToOsteopathData(resource.data.osteopathId);
+    }
+    
+    function isValidPatient(data) {
+      return data.firstName is string &&
+             data.lastName is string &&
+             data.dateOfBirth is string &&
+             (data.osteopathId == request.auth.uid || 
+              (isSubstitute() && data.osteopathId == getLinkedOsteopathId()));
+    }
+    
+    // Fonctions de conformité HDS
+    function hasHDSMetadata(data) {
+      return data._hds != null && 
+             data._hds.version is string && 
+             data._hds.lastUpdated is string &&
+             data._hds.updatedBy is string;
+    }
+    
+    function isValidHDSUpdate(existingData, newData) {
+      return newData._hds != null &&
+             newData._hds.version is string &&
+             newData._hds.lastUpdated is string &&
+             newData._hds.updatedBy == request.auth.uid;
+    }
+    
+    function ensureAuditFields() {
+      return request.resource.data.keys().hasAll(['_audit']) &&
+             request.resource.data._audit.createdAt is timestamp &&
+             request.resource.data._audit.createdBy == request.auth.uid;
+    }
+    
+    // Règles d'accès aux collections
+    
+    // Collection utilisateurs - Admin access only
+    match /users/{userId} {
+      allow read: if isAdmin() || request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+    
+    // Collection audit_logs - Immutable et accessible uniquement par admin
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Logs immuables
+    }
+    
+    // Collection beta_waitlist - Admin read, public write for registration
+    match /beta_waitlist/{entryId} {
+      allow read, write, delete: if isAdmin(); // Admin full access
+      allow create: if true; // Anyone can register for beta
+    }
+    
+    // Collection patients - Accès strictement contrôlé
+    match /patients/{patientId} {
+      // Lecture uniquement par le propriétaire ou admin
+      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Création avec validation HDS
+      allow create: if isAuthenticated() && 
+                     isValidPatient(request.resource.data) && 
+                     hasHDSMetadata(request.resource.data);
+      
+      // Mise à jour avec validation HDS
+      allow update: if isAuthenticated() && 
+                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     isValidHDSUpdate(resource.data, request.resource.data);
+      
+      // Suppression uniquement par le propriétaire ou admin
+      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Collections imbriquées
+      match /consultations/{consultationId} {
+        allow read: if isAdmin() || isOwner(get(/databases/$(database)/documents/patients/$(patientId)));
+        allow write, delete: if isAdmin() || isOwner(get(/databases/$(database)/documents/patients/$(patientId)));
+      }
+      
+      match /documents/{documentId} {
+        allow read: if isAdmin() || isOwner(get(/databases/$(database)/documents/patients/$(patientId)));
+        allow write, delete: if isAdmin() || isOwner(get(/databases/$(database)/documents/patients/$(patientId)));
+      }
+    }
+    
+    // Collection consultations - Accès strictement contrôlé
+    match /consultations/{consultationId} {
+      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Création avec validation HDS
+      allow create: if isAuthenticated() && 
+                     (request.resource.data.osteopathId == request.auth.uid ||
+                      (isSubstitute() && request.resource.data.osteopathId == getLinkedOsteopathId())) &&
+                     hasHDSMetadata(request.resource.data);
+      
+      // Mise à jour avec validation HDS
+      allow update: if isAuthenticated() && 
+                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     isValidHDSUpdate(resource.data, request.resource.data);
+      
+      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Collection appointments - Accès strictement contrôlé
+    match /appointments/{appointmentId} {
+      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Création avec validation HDS
+      allow create: if isAuthenticated() && 
+                     (request.resource.data.osteopathId == request.auth.uid ||
+                      (isSubstitute() && request.resource.data.osteopathId == getLinkedOsteopathId())) &&
+                     hasHDSMetadata(request.resource.data);
+      
+      // Mise à jour avec validation HDS
+      allow update: if isAuthenticated() && 
+                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     isValidHDSUpdate(resource.data, request.resource.data);
+      
+      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Collection invoices - Accès strictement contrôlé
+    match /invoices/{invoiceId} {
+      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Création avec validation HDS
+      allow create: if isAuthenticated() && 
+                     (request.resource.data.osteopathId == request.auth.uid ||
+                      (isSubstitute() && request.resource.data.osteopathId == getLinkedOsteopathId())) &&
+                     hasHDSMetadata(request.resource.data);
+      
+      // Mise à jour avec validation HDS
+      allow update: if isAuthenticated() && 
+                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     isValidHDSUpdate(resource.data, request.resource.data);
+      
+      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Collection system - Admin only
+    match /system/{docId} {
+      allow read, write, delete: if isAdmin();
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

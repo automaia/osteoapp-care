@@ -1,0 +1,25 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "beta_waitlist",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "email",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "beta_waitlist",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "submittedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

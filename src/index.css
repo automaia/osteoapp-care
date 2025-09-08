@@ -1,0 +1,377 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    font-size: 16px; /* Base font size */
+  }
+  
+  @media (max-width: 480px) {
+    html {
+      font-size: 14px; /* Smaller base font size for mobile */
+    }
+  }
+  
+  body {
+    @apply font-sans text-gray-900 bg-gray-50;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-2xl md:text-3xl lg:text-4xl;
+  }
+  
+  h2 {
+    @apply text-xl md:text-2xl lg:text-3xl;
+  }
+  
+  h3 {
+    @apply text-lg md:text-xl lg:text-2xl;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-opacity-50;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500;
+  }
+  
+  .btn-outline {
+    @apply border border-gray-300 bg-transparent text-gray-900 hover:bg-gray-100 focus:ring-gray-500;
+  }
+  
+  .btn-danger {
+    @apply bg-error text-white hover:bg-opacity-90 focus:ring-error;
+  }
+  
+  .input {
+    @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+  }
+  
+  .label {
+    @apply mb-1 block text-sm font-medium text-gray-700;
+  }
+  
+  .card {
+    @apply rounded-xl bg-white p-4 md:p-6 shadow-card transition-shadow hover:shadow-card-hover;
+  }
+
+  /* Animation de dégradé fluide pour le fond d'écran gauche */
+  .animated-gradient-bg {
+    background: linear-gradient(135deg, #0A84FF, #30D158, #0A84FF, #30D158);
+    background-size: 400% 400%;
+    animation: gradientShift 12s ease-in-out infinite;
+    position: relative;
+  }
+
+  .animated-gradient-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(10, 132, 255, 0.1), rgba(48, 209, 88, 0.1), rgba(10, 132, 255, 0.2));
+    background-size: 300% 300%;
+    animation: overlayShift 15s ease-in-out infinite reverse;
+    pointer-events: none;
+  }
+
+  /* Responsive container */
+  .container-responsive {
+    @apply w-full px-4 mx-auto;
+    max-width: 100%;
+  }
+  
+  @media (min-width: 640px) {
+    .container-responsive {
+      max-width: 640px;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .container-responsive {
+      max-width: 768px;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-responsive {
+      max-width: 1024px;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .container-responsive {
+      max-width: 1280px;
+    }
+  }
+
+  /* Animation principale du dégradé */
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+      filter: hue-rotate(0deg) brightness(1);
+    }
+    25% {
+      background-position: 100% 50%;
+      filter: hue-rotate(5deg) brightness(1.05);
+    }
+    50% {
+      background-position: 100% 100%;
+      filter: hue-rotate(0deg) brightness(1);
+    }
+    75% {
+      background-position: 0% 100%;
+      filter: hue-rotate(-5deg) brightness(0.95);
+    }
+    100% {
+      background-position: 0% 50%;
+      filter: hue-rotate(0deg) brightness(1);
+    }
+  }
+
+  /* Animation de l'overlay pour plus de profondeur */
+  @keyframes overlayShift {
+    0% {
+      background-position: 0% 0%;
+      opacity: 0.3;
+    }
+    33% {
+      background-position: 100% 0%;
+      opacity: 0.5;
+    }
+    66% {
+      background-position: 100% 100%;
+      opacity: 0.3;
+    }
+    100% {
+      background-position: 0% 0%;
+      opacity: 0.3;
+    }
+  }
+
+  /* Animation des éléments flottants décoratifs */
+  .floating-element-1 {
+    animation: float1 8s ease-in-out infinite;
+  }
+
+  .floating-element-2 {
+    animation: float2 10s ease-in-out infinite;
+  }
+
+  .floating-element-3 {
+    animation: float3 6s ease-in-out infinite;
+  }
+
+  @keyframes float1 {
+    0%, 100% {
+      transform: translateY(0px) translateX(0px) scale(1);
+    }
+    25% {
+      transform: translateY(-10px) translateX(5px) scale(1.05);
+    }
+    50% {
+      transform: translateY(-5px) translateX(-5px) scale(0.95);
+    }
+    75% {
+      transform: translateY(5px) translateX(3px) scale(1.02);
+    }
+  }
+
+  @keyframes float2 {
+    0%, 100% {
+      transform: translateY(0px) translateX(0px) scale(1);
+    }
+    30% {
+      transform: translateY(8px) translateX(-8px) scale(0.98);
+    }
+    60% {
+      transform: translateY(-12px) translateX(4px) scale(1.03);
+    }
+    90% {
+      transform: translateY(3px) translateX(-2px) scale(0.99);
+    }
+  }
+
+  @keyframes float3 {
+    0%, 100% {
+      transform: translateY(0px) translateX(0px) scale(1);
+    }
+    20% {
+      transform: translateY(-6px) translateX(6px) scale(1.04);
+    }
+    40% {
+      transform: translateY(4px) translateX(-4px) scale(0.96);
+    }
+    80% {
+      transform: translateY(-8px) translateX(2px) scale(1.01);
+    }
+  }
+
+  /* Amélioration des cartes avec backdrop-blur pour l'effet de profondeur */
+  .animated-gradient-bg .bg-white.bg-opacity-10 {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .animated-gradient-bg .bg-white.bg-opacity-10:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Optimisation des performances */
+  .animated-gradient-bg,
+  .animated-gradient-bg::before,
+  .floating-element-1,
+  .floating-element-2,
+  .floating-element-3 {
+    will-change: transform, background-position, filter;
+  }
+
+  /* Media queries pour les performances sur mobile */
+  @media (prefers-reduced-motion: reduce) {
+    .animated-gradient-bg,
+    .animated-gradient-bg::before,
+    .floating-element-1,
+    .floating-element-2,
+    .floating-element-3 {
+      animation: none;
+    }
+    
+    .animated-gradient-bg {
+      background: linear-gradient(135deg, #0A84FF, #30D158);
+      background-size: 100% 100%;
+    }
+  }
+
+  /* Optimisation pour les appareils moins performants */
+  @media (max-width: 768px) {
+    .animated-gradient-bg::before {
+      display: none;
+    }
+    
+    .floating-element-1,
+    .floating-element-2,
+    .floating-element-3 {
+      animation-duration: 12s;
+    }
+  }
+  
+  /* Responsive table styles */
+  .responsive-table {
+    @apply w-full;
+  }
+  
+  @media (max-width: 768px) {
+    .responsive-table thead {
+      @apply hidden;
+    }
+    
+    .responsive-table tbody tr {
+      @apply block border-b border-gray-200 py-4;
+    }
+    
+    .responsive-table tbody td {
+      @apply block text-right py-2 px-4 before:content-[attr(data-label)] before:float-left before:font-medium before:text-gray-700;
+    }
+  }
+  
+  /* Responsive grid layouts */
+  .responsive-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  }
+  
+  /* Responsive navigation */
+  .nav-mobile {
+    @apply fixed inset-0 z-50 bg-white transform transition-transform duration-300 ease-in-out;
+  }
+  
+  .nav-mobile.open {
+    @apply translate-x-0;
+  }
+  
+  .nav-mobile.closed {
+    @apply -translate-x-full;
+  }
+  
+  /* Animation pour le bouton Beta */
+  .beta-button-link {
+    @apply inline-block text-primary-600 hover:text-primary-700 font-medium transition-all duration-300 relative;
+  }
+  
+  .beta-button-link::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300;
+  }
+  
+  .beta-button-link:hover::after {
+    @apply w-full;
+  }
+  
+  /* Animation de pulsation subtile */
+  .pulse-subtle {
+    animation: pulse-subtle 2s infinite;
+  }
+  
+  @keyframes pulse-subtle {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.03);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+}
+
+/* For smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-gray-300 hover:bg-gray-400;
+}
+
+/* Responsive image handling */
+.img-responsive {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Touch-friendly interactive elements */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

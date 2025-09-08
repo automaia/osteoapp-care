@@ -1,0 +1,188 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Fonctions utilitaires
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email == 'grondin.stephane@gmail.com';
+    }
+    
+    function isSpecificUser(email) {
+      return isAuthenticated() && request.auth.token.email == email;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isCreatedByAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.createdBy == 'admin';
+    }
+    
+    // Validation des fichiers pour conformité HDS
+    function isValidFileType() {
+      return request.resource.contentType.matches('image/.*') ||
+             request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('application/msword') ||
+             request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document') ||
+             request.resource.contentType.matches('text/plain');
+    }
+    
+    function isValidFileSize() {
+      return request.resource.size <= 10 * 1024 * 1024; // 10MB max
+    }
+    
+    function isValidFileName() {
+      return resource == null || (
+        resource.name.size() <= 255 &&
+        !resource.name.matches('.*[<>:"/\\|?*].*') // Caractères interdits
+      );
+    }
+    
+    function hasHDSMetadata() {
+      return request.resource.metadata.keys().hasAll(['hdsCompliance']) &&
+             request.resource.metadata.hdsCompliance.keys().hasAll(['version', 'sensitivity', 'encryptionStatus']);
+    }
+    
+    // Règles pour les documents utilisateur
+    match /users/{userId}/{allPaths=**} {
+      // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
+      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Écriture: autorisée pour le propriétaire avec validation HDS, l'admin, ou Julie
+      allow write: if (isOwner(userId) && 
+                      isValidFileType() && 
+                      isValidFileSize() && 
+                      isValidFileName()) || 
+                    isAdmin() || 
+                    isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
+      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Règles spécifiques pour les documents patients
+    match /users/{userId}/patients/{patientId}/{allPaths=**} {
+      // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
+      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Écriture: autorisée pour le propriétaire avec validation, l'admin, Julie, ou utilisateurs créés par admin
+      allow write: if (isOwner(userId) && 
+                      isValidFileType() && 
+                      isValidFileSize() && 
+                      isValidFileName()) || 
+                    isAdmin() || 
+                    isSpecificUser('julie.boddaert@hotmail.fr') ||
+                    (isCreatedByAdmin() && 
+                     isValidFileType() && 
+                     isValidFileSize() && 
+                     isValidFileName());
+      
+      // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
+      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Règles spécifiques pour les documents de cabinet
+    match /users/{userId}/practice/{allPaths=**} {
+      // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
+      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Écriture: autorisée pour le propriétaire avec validation, l'admin, Julie, ou utilisateurs créés par admin
+      allow write: if (isOwner(userId) && 
+                      isValidFileType() && 
+                      isValidFileSize() && 
+                      isValidFileName()) || 
+                    isAdmin() || 
+                    isSpecificUser('julie.boddaert@hotmail.fr') ||
+                    (isCreatedByAdmin() && 
+                     isValidFileType() && 
+                     isValidFileSize() && 
+                     isValidFileName());
+      
+      // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
+      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Règles spécifiques pour les factures
+    match /users/{userId}/invoices/{invoiceId}/{allPaths=**} {
+      // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
+      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Écriture: autorisée pour le propriétaire avec validation, l'admin, Julie, ou utilisateurs créés par admin
+      allow write: if (isOwner(userId) && 
+                      isValidFileType() && 
+                      isValidFileSize() && 
+                      isValidFileName()) || 
+                    isAdmin() || 
+                    isSpecificUser('julie.boddaert@hotmail.fr') ||
+                    (isCreatedByAdmin() && 
+                     isValidFileType() && 
+                     isValidFileSize() && 
+                     isValidFileName());
+      
+      // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
+      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Règles spécifiques pour les rendez-vous
+    match /users/{userId}/appointments/{appointmentId}/{allPaths=**} {
+      // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
+      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Écriture: autorisée pour le propriétaire avec validation, l'admin, Julie, ou utilisateurs créés par admin
+      allow write: if (isOwner(userId) && 
+                      isValidFileType() && 
+                      isValidFileSize() && 
+                      isValidFileName()) || 
+                    isAdmin() || 
+                    isSpecificUser('julie.boddaert@hotmail.fr') ||
+                    (isCreatedByAdmin() && 
+                     isValidFileType() && 
+                     isValidFileSize() && 
+                     isValidFileName());
+      
+      // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
+      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Règles pour les patients (dossier spécifique)
+    match /patients/{userId}/{patientId}/{allPaths=**} {
+      // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
+      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      
+      // Écriture: autorisée pour le propriétaire avec validation, l'admin, Julie, ou utilisateurs créés par admin
+      allow write: if (isOwner(userId) && 
+                      isValidFileType() && 
+                      isValidFileSize() && 
+                      isValidFileName()) || 
+                    isAdmin() || 
+                    isSpecificUser('julie.boddaert@hotmail.fr') ||
+                    (isCreatedByAdmin() && 
+                     isValidFileType() && 
+                     isValidFileSize() && 
+                     isValidFileName());
+      
+      // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
+      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+    }
+    
+    // Logs d'audit - Immuables
+    match /audit_logs/{logId} {
+      allow read: if isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Logs immuables
+    }
+    
+    // Interdire tout autre accès
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
