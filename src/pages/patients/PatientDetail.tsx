@@ -1821,6 +1821,31 @@ const PatientDetail: React.FC = () => {
 
         {activeTab === 'documents' && (
           <div className="bg-white rounded-xl shadow p-6">
+            {/* Messages de succès/erreur pour les documents */}
+            {documentUploadSuccess && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                {documentUploadSuccess}
+              </div>
+            )}
+            
+            {documentUploadError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {documentUploadError}
+              </div>
+            )}
+
+            {/* Section d'upload de documents */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Documents médicaux</h3>
+              <DocumentUploadManager
+                patientId={patient.id}
+                initialDocuments={patient.documents || []}
+                onUploadSuccess={handleDocumentUpload}
+                onUploadError={handleDocumentUploadError}
+                disabled={false}
+              />
+            </div>
+
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-medium text-gray-900">Documents</h3>
               <Button
@@ -1859,6 +1884,12 @@ const PatientDetail: React.FC = () => {
                         size="sm"
                         leftIcon={<Download size={16} />}
                         onClick={() => {
+                          <button
+                            onClick={() => handleEditDocument(document.id)}
+                            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          >
+                            Modifier
+                          </button>
                           const link = document.createElement('a');
                           link.href = document.url;
                           link.download = document.originalName;
