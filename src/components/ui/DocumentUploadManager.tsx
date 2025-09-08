@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, FileText, Image as ImageIcon, AlertCircle, CheckCircle, Loader2, Plus, Trash2 } from 'lucide-react';
+import { Upload, X, FileText, Image as ImageIcon, AlertCircle, CheckCircle, Loader2, Plus, Trash2, Eye } from 'lucide-react';
 import { Button } from './Button';
 import { 
   uploadDocument, 
@@ -49,6 +49,8 @@ const DocumentUploadManager: React.FC<DocumentUploadManagerProps> = ({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedCategory, setSelectedCategory] = useState(DOCUMENT_CATEGORIES[0].value);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
@@ -185,6 +187,29 @@ const DocumentUploadManager: React.FC<DocumentUploadManagerProps> = ({
     files.forEach((file, index) => {
       processFile(file, selectedCategory, newUploadingFiles.length - files.length + index);
     });
+  };
+
+  const handleDeleteDocument = async (document: DocumentMetadata) => {
+    if (!auth.currentUser) return;
+    
+    setIsDeleting(document.id);
+    try {
+      await deleteDocument(`${document.folder}/${document.name}`);
+      
+      // Mettre à jour la liste des documents
+      const updatedDocuments = documents.filter(doc => doc.id !== document.id);
+      setDocuments(updatedDocuments);
+      
+      // Notifier le parent
+      onUploadSuccess(updatedDocuments);
+      
+    } catch (error) {
+      console.error('Delete error:', error);
+      onUploadError(error instanceof Error ? error.message : 'Erreur lors de la suppression');
+    } finally {
+      setIsDeleting(null);
+      setShowDeleteConfirm(null);
+    }
   };
 
   const handleDeleteDocument = async (document: DocumentMetadata) => {
@@ -359,11 +384,11 @@ const DocumentUploadManager: React.FC<DocumentUploadManagerProps> = ({
       {documents.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-900">Documents téléversés</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="space-y-3">
             {documents.map((document) => (
               <div
                 key={document.id}
-                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   <div className="flex-shrink-0">
@@ -390,45 +415,47 @@ const DocumentUploadManager: React.FC<DocumentUploadManagerProps> = ({
                   </div>
                 </div>
                 
-                <div className="flex space-x-2">
+                <div className="flex items-center space-x-2">
                   <a
                     href={document.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary-600 hover:text-primary-700"
+                    className="text-primary-600 hover:text-primary-700 transition-colors"
                     title="Voir le document"
                   >
-                    <Button variant="ghost" size="sm">
-                      Voir
-                    </Button>
+                    <Eye size={16} />
                   </a>
                   
-                  {showDeleteConfirm === document.id ? (
-                    <div className="flex space-x-1">
+                  {showDeleteConfirm === document.id && isDeleting !== document.id ? (
+                    <div className="flex items-center space-x-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => setShowDeleteConfirm(null)}
                       >
                         Annuler
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="danger"
                         size="sm"
                         onClick={() => handleDeleteDocument(document)}
-                        isLoading={isDeleting === document.id}
-                        className="text-red-600 hover:text-red-700"
                       >
                         Confirmer
                       </Button>
                     </div>
+                  ) : isDeleting === document.id ? (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="animate-spin text-gray-500" size={16} />
+                      <span className="text-sm text-gray-500">Suppression...</span>
+                    </div>
                   ) : (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => setShowDeleteConfirm(document.id)}
-                      className="text-red-600 hover:text-red-700"
-                      disabled={isDeleting !== null}
+                      className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                      disabled={isDeleting !== null || showDeleteConfirm !== null}
+                      leftIcon={<Trash2 size={14} />}
                     >
                       Supprimer
                     </Button>

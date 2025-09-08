@@ -576,7 +576,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ isOpen, onClose, on
                     initialDocuments={patientDocuments}
                     onUploadSuccess={handleDocumentsUpdate}
                     onUploadError={handleDocumentError}
-                    disabled={isSubmitting}
+                    disabled={false}
                   />
                 </div>
 
