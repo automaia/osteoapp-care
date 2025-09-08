@@ -376,6 +376,11 @@ export async function deleteDocument(filePath: string): Promise<void> {
     await deleteObject(fileRef);
     console.log('✅ Fichier supprimé avec succès');
   } catch (error) {
+    // Si le fichier n'existe pas déjà, considérer la suppression comme réussie
+    if (error.code === 'storage/object-not-found') {
+      console.warn('⚠️ Fichier déjà absent du stockage:', filePath);
+      return;
+    }
     console.error('❌ Erreur lors de la suppression:', error);
     throw new Error('Erreur lors de la suppression du document');
   }
