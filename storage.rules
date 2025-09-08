@@ -16,6 +16,13 @@ service firebase.storage {
       return isAuthenticated() && request.auth.token.email == email;
     }
     
+    function isJulieWithPhone() {
+      return isAuthenticated() && 
+        request.auth.token.email == 'julie.boddaert@hotmail.fr' &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneNumber == '06 16 53 13 76';
+    }
+    
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
@@ -54,7 +61,7 @@ service firebase.storage {
     // Règles pour les documents utilisateur
     match /users/{userId}/{allPaths=**} {
       // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
-      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow read: if isOwner(userId) || isAdmin() || isJulieWithPhone();
       
       // Écriture: autorisée pour le propriétaire avec validation HDS, l'admin, ou Julie
       allow write: if (isOwner(userId) && 
@@ -62,16 +69,16 @@ service firebase.storage {
                       isValidFileSize() && 
                       isValidFileName()) || 
                     isAdmin() || 
-                    isSpecificUser('julie.boddaert@hotmail.fr');
+                    isJulieWithPhone();
       
       // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
-      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow delete: if isOwner(userId) || isAdmin() || isJulieWithPhone();
     }
     
     // Règles spécifiques pour les documents patients
     match /users/{userId}/patients/{patientId}/{allPaths=**} {
       // Lecture: autorisée pour le propriétaire, l'admin, ou Julie
-      allow read: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow read: if isOwner(userId) || isAdmin() || isJulieWithPhone();
       
       // Écriture: autorisée pour le propriétaire avec validation, l'admin, Julie, ou utilisateurs créés par admin
       allow write: if (isOwner(userId) && 
@@ -79,14 +86,14 @@ service firebase.storage {
                       isValidFileSize() && 
                       isValidFileName()) || 
                     isAdmin() || 
-                    isSpecificUser('julie.boddaert@hotmail.fr') ||
+                    isJulieWithPhone() ||
                     (isCreatedByAdmin() && 
                      isValidFileType() && 
                      isValidFileSize() && 
                      isValidFileName());
       
       // Suppression: autorisée pour le propriétaire, l'admin, ou Julie
-      allow delete: if isOwner(userId) || isAdmin() || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow delete: if isOwner(userId) || isAdmin() || isJulieWithPhone();
     }
     
     // Règles spécifiques pour les documents de cabinet

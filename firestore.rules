@@ -11,6 +11,12 @@ service cloud.firestore {
         request.auth.token.email.lower() == 'grondin.stephane@gmail.com';
     }
     
+    function isJulieWithPhone() {
+      return isAuthenticated() && 
+        request.auth.token.email.lower() == 'julie.boddaert@hotmail.fr' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phoneNumber == '06 16 53 13 76';
+    }
+    
     function isOsteopath() {
       return isAuthenticated() && 
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'osteopath';
@@ -89,7 +95,7 @@ service cloud.firestore {
     // Collection patients - Accès strictement contrôlé
     match /patients/{patientId} {
       // Lecture uniquement par le propriétaire ou admin
-      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow read: if isAdmin() || isOwner(resource) || isJulieWithPhone();
       
       // Création avec validation HDS
       allow create: if isAuthenticated() && 
@@ -98,11 +104,11 @@ service cloud.firestore {
       
       // Mise à jour avec validation HDS
       allow update: if isAuthenticated() && 
-                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     (isOwner(resource) || isJulieWithPhone()) && 
                      isValidHDSUpdate(resource.data, request.resource.data);
       
       // Suppression uniquement par le propriétaire ou admin
-      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow delete: if isAdmin() || isOwner(resource) || isJulieWithPhone();
       
       // Collections imbriquées
       match /consultations/{consultationId} {
@@ -118,7 +124,7 @@ service cloud.firestore {
     
     // Collection consultations - Accès strictement contrôlé
     match /consultations/{consultationId} {
-      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow read: if isAdmin() || isOwner(resource) || isJulieWithPhone();
       
       // Création avec validation HDS
       allow create: if isAuthenticated() && 
@@ -128,15 +134,15 @@ service cloud.firestore {
       
       // Mise à jour avec validation HDS
       allow update: if isAuthenticated() && 
-                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     (isOwner(resource) || isJulieWithPhone()) && 
                      isValidHDSUpdate(resource.data, request.resource.data);
       
-      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow delete: if isAdmin() || isOwner(resource) || isJulieWithPhone();
     }
     
     // Collection appointments - Accès strictement contrôlé
     match /appointments/{appointmentId} {
-      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow read: if isAdmin() || isOwner(resource) || isJulieWithPhone();
       
       // Création avec validation HDS
       allow create: if isAuthenticated() && 
@@ -146,15 +152,15 @@ service cloud.firestore {
       
       // Mise à jour avec validation HDS
       allow update: if isAuthenticated() && 
-                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     (isOwner(resource) || isJulieWithPhone()) && 
                      isValidHDSUpdate(resource.data, request.resource.data);
       
-      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow delete: if isAdmin() || isOwner(resource) || isJulieWithPhone();
     }
     
     // Collection invoices - Accès strictement contrôlé
     match /invoices/{invoiceId} {
-      allow read: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow read: if isAdmin() || isOwner(resource) || isJulieWithPhone();
       
       // Création avec validation HDS
       allow create: if isAuthenticated() && 
@@ -164,10 +170,10 @@ service cloud.firestore {
       
       // Mise à jour avec validation HDS
       allow update: if isAuthenticated() && 
-                     (isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr')) && 
+                     (isOwner(resource) || isJulieWithPhone()) && 
                      isValidHDSUpdate(resource.data, request.resource.data);
       
-      allow delete: if isAdmin() || isOwner(resource) || isSpecificUser('julie.boddaert@hotmail.fr');
+      allow delete: if isAdmin() || isOwner(resource) || isJulieWithPhone();
     }
     
     // Collection system - Admin only

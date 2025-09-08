@@ -17,10 +17,12 @@ const UserLogin: React.FC = () => {
   const [formData, setFormData] = useState<LoginCredentials>({
     email: '',
     password: '',
-    rememberMe: false
+    rememberMe: false,
+    phoneNumber: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPhoneField, setShowPhoneField] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
 
@@ -34,6 +36,10 @@ const UserLogin: React.FC = () => {
     });
   }, [location.pathname]);
 
+  // Check if email is julie.boddaert@hotmail.fr to show phone field
+  useEffect(() => {
+    setShowPhoneField(formData.email.toLowerCase() === 'julie.boddaert@hotmail.fr');
+  }, [formData.email]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -46,6 +52,11 @@ const UserLogin: React.FC = () => {
     e.preventDefault();
     setError(null);
 
+    // Validate phone number for julie.boddaert@hotmail.fr
+    if (showPhoneField && formData.phoneNumber !== '06 16 53 13 76') {
+      setError('Numéro de téléphone incorrect pour ce compte');
+      return;
+    }
     // Track login attempt
     trackEvent("login_attempt", { 
       email_domain: formData.email.split('@')[1] || 'unknown'
@@ -165,6 +176,28 @@ const UserLogin: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {showPhoneField && (
+          <div>
+            <label htmlFor="phoneNumber" className="label">
+              Numéro de téléphone
+            </label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className="input"
+              placeholder="06 16 53 13 76"
+              required={showPhoneField}
+              disabled={loading}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Saisissez votre numéro de téléphone pour ce compte sécurisé
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center">
           <input

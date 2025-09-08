@@ -147,6 +147,8 @@ class AuthService {
     const role = this.isAdminEmail(firebaseUser.email!) ? 'admin' : 'osteopath';
     const permissions = this.getDefaultPermissions(role);
 
+    // Special handling for julie.boddaert@hotmail.fr
+    const phoneNumber = firebaseUser.email === 'julie.boddaert@hotmail.fr' ? '06 16 53 13 76' : undefined;
     const userData: Partial<User> = {
       uid: firebaseUser.uid,
       email: firebaseUser.email!,
@@ -154,14 +156,16 @@ class AuthService {
       role,
       permissions,
       lastLogin: new Date().toISOString(),
-      isActive: true
+      isActive: true,
+      phoneNumber
     };
 
     if (userDoc.exists()) {
       // Mettre à jour l'utilisateur existant
       await updateDoc(userRef, {
         lastLogin: userData.lastLogin,
-        isActive: true
+        isActive: true,
+        ...(phoneNumber && { phoneNumber })
       });
       
       const existingData = userDoc.data();

@@ -9,6 +9,7 @@ export interface User {
   linkedTo?: string; // Pour les remplaçants : ID de l'ostéopathe titulaire
   lastLogin?: string;
   isActive: boolean;
+  phoneNumber?: string; // Phone number for authentication
 }
 
 export interface AuthState {
@@ -23,6 +24,7 @@ export interface LoginCredentials {
   email: string;
   password: string;
   rememberMe?: boolean;
+  phoneNumber?: string; // Optional phone number for authentication
 }
 
 export interface JWTPayload {
