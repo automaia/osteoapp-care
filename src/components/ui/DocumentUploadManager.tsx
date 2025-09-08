@@ -51,8 +51,6 @@ const DocumentUploadManager: React.FC<DocumentUploadManagerProps> = ({
   const [selectedCategory, setSelectedCategory] = useState(DOCUMENT_CATEGORIES[0].value);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || !auth.currentUser) return;
