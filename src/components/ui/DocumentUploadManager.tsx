@@ -210,29 +210,6 @@ const DocumentUploadManager: React.FC<DocumentUploadManagerProps> = ({
     }
   };
 
-  const handleDeleteDocument = async (document: DocumentMetadata) => {
-    if (!auth.currentUser) return;
-    
-    setIsDeleting(document.id);
-    try {
-      await deleteDocument(`${document.folder}/${document.name}`);
-      
-      // Mettre à jour la liste des documents
-      const updatedDocuments = documents.filter(doc => doc.id !== document.id);
-      setDocuments(updatedDocuments);
-      
-      // Notifier le parent
-      onUploadSuccess(updatedDocuments);
-      
-    } catch (error) {
-      console.error('Delete error:', error);
-      onUploadError(error instanceof Error ? error.message : 'Erreur lors de la suppression');
-    } finally {
-      setIsDeleting(null);
-      setShowDeleteConfirm(null);
-    }
-  };
-
   const getStatusIcon = (status: UploadingFile['status']) => {
     switch (status) {
       case 'validating':
