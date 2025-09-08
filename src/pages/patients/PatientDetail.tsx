@@ -66,6 +66,8 @@ const PatientDetail: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
+  const [isDeletingDocument, setIsDeletingDocument] = useState<string | null>(null);
+  const [documentMessage, setDocumentMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isNewInvoiceModalOpen, setIsNewInvoiceModalOpen] = useState(false);
   const [isEditInvoiceModalOpen, setIsEditInvoiceModalOpen] = useState(false);
   const [isDeleteInvoiceModalOpen, setIsDeleteInvoiceModalOpen] = useState(false);
