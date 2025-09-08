@@ -48,6 +48,8 @@ import { cleanDecryptedField } from '../../utils/dataCleaning';
 import { PatientService } from '../../services/patientService';
 import { ConsultationService } from '../../services/consultationService';
 import { HDSCompliance } from '../../utils/hdsCompliance';
+import DocumentUploadManager from '../../components/ui/DocumentUploadManager';
+import { DocumentMetadata } from '../../utils/documentStorage';
 import { InvoiceService } from '../../services/invoiceService';
 import { AppointmentService } from '../../services/appointmentService';
 import { patientCache } from '../../utils/patientCache';
