@@ -44,7 +44,6 @@ import DeleteConsultationModal from '../../components/modals/DeleteConsultationM
 import { Patient, Consultation, Invoice } from '../../types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { cleanDecryptedField } from '../../utils/dataCleaning';
 import { PatientService } from '../../services/patientService';
 import { ConsultationService } from '../../services/consultationService';
