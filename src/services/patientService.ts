@@ -259,6 +259,7 @@ export class PatientService {
    * Supprime un patient et toutes ses données associées
    */
   static async deletePatient(patientId: string): Promise<{
+    status: 'success' | 'not_found';
     patient: boolean;
     appointments: number;
     consultations: number;
@@ -275,7 +276,22 @@ export class PatientService {
       const patientSnap = await getDoc(patientRef);
       
       if (!patientSnap.exists()) {
-        throw new Error('Patient non trouvé');
+        // Patient non trouvé - retourner un résultat avec status not_found
+        await AuditLogger.logPatientModification(
+          patientId,
+          'delete_cascade',
+          'not_found',
+          { reason: 'Patient not found in database' }
+        );
+        
+        return {
+          status: 'not_found',
+          patient: false,
+          appointments: 0,
+          consultations: 0,
+          invoices: 0,
+          documents: 0
+        };
       }
       
       const patientData = patientSnap.data();
@@ -322,6 +338,7 @@ export class PatientService {
       );
       
       return {
+        status: 'success',
         patient: true,
         appointments: appointmentsDeleted,
         consultations: consultationsDeleted,

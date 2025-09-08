@@ -39,19 +39,9 @@ const DeletePatientModal: React.FC<DeletePatientModalProps> = ({
       // Utiliser le service pour supprimer le patient et toutes ses données associées
       const result = await PatientService.deletePatient(patientId);
       
-      // Afficher les statistiques de suppression
-      setDeleteStats(result);
-      setDeleteStep('complete');
-      
-      // Attendre 2 secondes avant de fermer le modal et notifier le parent
-      setTimeout(() => {
-        onConfirm();
-      }, 2000);
-      
-    } catch (error: any) {
-      // Si le patient n'est pas trouvé, traiter cela comme un succès
-      // car le résultat final est le même (le patient n'existe plus)
-      if (error.message === 'Patient non trouvé') {
+      // Vérifier le statut de la suppression
+      if (result.status === 'not_found') {
+        // Patient non trouvé - traiter comme un succès car le résultat final est le même
         setDeleteStats({
           appointments: 0,
           consultations: 0,
@@ -65,9 +55,19 @@ const DeletePatientModal: React.FC<DeletePatientModalProps> = ({
           onConfirm();
         }, 2000);
       } else {
-        setError(error.message || 'Une erreur est survenue lors de la suppression');
-        setDeleteStep('confirm');
+        // Suppression réussie - afficher les statistiques
+        setDeleteStats(result);
+        setDeleteStep('complete');
+        
+        // Attendre 2 secondes avant de fermer le modal et notifier le parent
+        setTimeout(() => {
+          onConfirm();
+        }, 2000);
       }
+      
+    } catch (error: any) {
+      setError(error.message || 'Une erreur est survenue lors de la suppression');
+      setDeleteStep('confirm');
     }
   };
 
