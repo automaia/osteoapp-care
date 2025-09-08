@@ -27,7 +27,7 @@ import {
   Pill,
   AlertTriangle
 } from 'lucide-react';
-import { doc, getDoc, collection, query, where, getDocs, onSnapshot, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase/config';
 import { Button } from '../../components/ui/Button';
 import EditPatientModal from '../../components/modals/EditPatientModal';
@@ -53,7 +53,6 @@ import { patientCache } from '../../utils/patientCache';
 import { trackEvent } from '../../lib/clarityClient';
 import { trackEvent as trackMatomoEvent } from '../../lib/matomoTagManager';
 import { trackEvent as trackGAEvent } from '../../lib/googleAnalytics';
-import { deleteDocument } from '../../services/documentService';
 
 const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -86,9 +85,6 @@ const PatientDetail: React.FC = () => {
   const [isDeletingPatient, setIsDeletingPatient] = useState(false);
   const [isDeletingInvoice, setIsDeletingInvoice] = useState(false);
   const [isDeletingConsultation, setIsDeletingConsultation] = useState(false);
-  const [isDeletingDocument, setIsDeletingDocument] = useState<string | null>(null);
-  const [documentDeleteError, setDocumentDeleteError] = useState<string | null>(null);
-  const [documentDeleteSuccess, setDocumentDeleteSuccess] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date());
@@ -370,47 +366,6 @@ const PatientDetail: React.FC = () => {
     setIsAddDocumentModalOpen(false);
     // Reload patient data to show new document
     loadPatientData();
-  };
-
-  const handleDeleteDocument = async (document: any) => {
-    if (!window.confirm('Supprimer définitivement ce document ? Cette action est irréversible.')) {
-      return;
-    }
-
-    setIsDeletingDocument(document.id);
-    setDocumentDeleteError(null);
-
-    try {
-      // Supprimer le fichier du stockage
-      const filePath = `${document.folder}/${document.name}`;
-      await deleteDocument(filePath);
-
-      // Mettre à jour le patient en retirant le document de la liste
-      const updatedDocuments = (patient?.documents || []).filter(doc => doc.id !== document.id);
-      
-      const patientRef = doc(db, 'patients', id!);
-      await updateDoc(patientRef, {
-        documents: updatedDocuments,
-        updatedAt: Timestamp.now()
-      });
-
-      // Mettre à jour l'état local
-      setPatient(prev => prev ? {
-        ...prev,
-        documents: updatedDocuments
-      } : null);
-
-      // Afficher le message de succès
-      setDocumentDeleteSuccess('Document supprimé');
-      setTimeout(() => setDocumentDeleteSuccess(null), 3000);
-
-    } catch (error: any) {
-      console.error('❌ Erreur lors de la suppression du document:', error);
-      setDocumentDeleteError('Erreur lors de la suppression du document');
-      setTimeout(() => setDocumentDeleteError(null), 5000);
-    } finally {
-      setIsDeletingDocument(null);
-    }
   };
 
   // Invoice handlers
@@ -1874,19 +1829,6 @@ const PatientDetail: React.FC = () => {
               </Button>
             </div>
 
-            {/* Messages d'erreur et de succès */}
-            {documentDeleteError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700">{documentDeleteError}</p>
-              </div>
-            )}
-
-            {documentDeleteSuccess && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-700">{documentDeleteSuccess}</p>
-              </div>
-            )}
-
             {patient.documents && patient.documents.length > 0 ? (
               <div className="space-y-4">
                 {patient.documents.map((document, index) => (
@@ -1921,16 +1863,6 @@ const PatientDetail: React.FC = () => {
                         }}
                       >
                         Télécharger
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        leftIcon={<Trash2 size={16} />}
-                        onClick={() => handleDeleteDocument(document)}
-                        disabled={isDeletingDocument === document.id}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        {isDeletingDocument === document.id ? 'Suppression...' : 'Supprimer'}
                       </Button>
                     </div>
                   </div>

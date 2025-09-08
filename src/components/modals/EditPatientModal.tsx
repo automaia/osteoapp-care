@@ -268,9 +268,7 @@ const EditPatientModal: React.FC<EditPatientModalProps> = ({ isOpen, onClose, on
 
       // Ajouter les documents si présents
       // Toujours mettre à jour le champ documents, même s'il est vide
-      updatedData.documents = patientDocuments.map(doc => ({
-        ...doc
-      }));
+      updatedData.documents = patientDocuments;
 
       console.log('Updating patient document...', { patientId: patient.id, updatedData });
       
