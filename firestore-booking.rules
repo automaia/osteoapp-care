@@ -1,0 +1,141 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Fonctions utilitaires
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email.lower() == 'grondin.stephane@gmail.com';
+    }
+    
+    function isStaff() {
+      return isAuthenticated() && 
+        (isAdmin() || 
+         request.auth.token.role in ['practitioner', 'assistant']);
+    }
+    
+    function belongsToTenant(tenantId) {
+      return isAuthenticated() && 
+        request.auth.token.tenantId == tenantId;
+    }
+    
+    function isPatientOwner(patientId) {
+      return isAuthenticated() && 
+        request.auth.uid == patientId;
+    }
+    
+    // Services - lecture publique, écriture staff uniquement
+    match /services/{serviceId} {
+      allow read: if true; // Public pour la réservation en ligne
+      allow write: if isStaff();
+    }
+    
+    // Praticiens - lecture publique, écriture staff uniquement
+    match /practitioners/{practitionerId} {
+      allow read: if true; // Public pour la réservation en ligne
+      allow write: if isStaff();
+    }
+    
+    // Disponibilités - lecture publique, écriture staff uniquement
+    match /availability/{practitionerId}/{document=**} {
+      allow read: if true; // Public pour la réservation en ligne
+      allow write: if isStaff();
+    }
+    
+    // Exceptions de disponibilité - lecture publique, écriture staff uniquement
+    match /availabilityExceptions/{practitionerId}/{date} {
+      allow read: if true; // Public pour la réservation en ligne
+      allow write: if isStaff();
+    }
+    
+    // Créneaux de rendez-vous - lecture publique, AUCUNE écriture client
+    match /appointmentSlots/{slotId} {
+      allow read: if true; // Public pour voir les créneaux disponibles
+      allow write: if false; // Écriture uniquement via Cloud Functions
+    }
+    
+    // Réservations temporaires - AUCUN accès client
+    match /slotHolds/{holdId} {
+      allow read, write: if false; // Gestion uniquement via Cloud Functions
+    }
+    
+    // Rendez-vous - lecture limitée, AUCUNE écriture client
+    match /appointments/{appointmentId} {
+      allow read: if isStaff() || 
+        (isAuthenticated() && resource.data.patientId == request.auth.uid);
+      allow write: if false; // Écriture uniquement via Cloud Functions
+    }
+    
+    // Notifications - AUCUN accès client
+    match /notifications/{notificationId} {
+      allow read: if isStaff();
+      allow write: if false; // Gestion uniquement via Cloud Functions
+    }
+    
+    // Règles existantes pour les autres collections (patients, consultations, etc.)
+    // ... (conserver les règles existantes)
+    
+    // Collection utilisateurs - Admin access only
+    match /users/{userId} {
+      allow read: if isAdmin() || request.auth.uid == userId;
+      allow write: if isAdmin();
+    }
+    
+    // Collection audit_logs - Immutable et accessible uniquement par admin
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Logs immuables
+    }
+    
+    // Collection beta_waitlist - Admin read, public write for registration
+    match /beta_waitlist/{entryId} {
+      allow read, write, delete: if isAdmin(); // Admin full access
+      allow create: if true; // Anyone can register for beta
+    }
+    
+    // Collection patients - Accès strictement contrôlé
+    match /patients/{patientId} {
+      allow read: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+      allow write: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+      allow delete: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+    }
+    
+    // Collection consultations - Accès strictement contrôlé
+    match /consultations/{consultationId} {
+      allow read: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+      allow write: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+      allow delete: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+    }
+    
+    // Collection invoices - Accès strictement contrôlé
+    match /invoices/{invoiceId} {
+      allow read: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+      allow write: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+      allow delete: if isAdmin() || 
+        (isAuthenticated() && resource.data.osteopathId == request.auth.uid);
+    }
+    
+    // Collection system - Admin only
+    match /system/{docId} {
+      allow read, write, delete: if isAdmin();
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,5 +1,5 @@
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc, Timestamp } from 'firebase/firestore';
-import { db, auth } from './firebase/config';
+import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { db } from './firebase/config';
 
 export interface WorkingWindow {
   start: Date;
