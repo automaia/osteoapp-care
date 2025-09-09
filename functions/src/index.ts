@@ -2,6 +2,8 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as nodemailer from 'nodemailer';
 
+// Import booking functions
+export * from './booking';
 admin.initializeApp();
 
 // Configuration email (à adapter selon votre fournisseur)
